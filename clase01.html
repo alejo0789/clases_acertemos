@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acertemos - Clase 01 IA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 0;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 0.95em;
+            opacity: 0.9;
+        }
+
+        .content-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 480px;
+            gap: 0;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .steps-container {
+            padding: 40px;
+            overflow-y: auto;
+            height: 100%;
+        }
+
+        .video-container {
+            background: #1a1a2e;
+            padding: 40px 35px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            border-left: 3px solid #667eea;
+            overflow-y: auto;
+        }
+
+        .video-wrapper {
+            width: 100%;
+            aspect-ratio: 16/9;
+            border-radius: 15px;
+            overflow: hidden;
+            background: #16213e;
+        }
+
+        .video-wrapper iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .video-placeholder {
+            width: 100%;
+            height: 100%;
+            background: #16213e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #667eea;
+            font-size: 1.2em;
+            border: 2px dashed #667eea;
+        }
+
+        .video-info {
+            color: white;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .video-info h3 {
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        .module {
+            margin-bottom: 15px;
+        }
+
+        .module-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .module-header:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .module-icon {
+            font-size: 1.5em;
+        }
+
+        .module-title {
+            flex: 1;
+        }
+
+        .module-title h2 {
+            font-size: 1.1em;
+            margin-bottom: 3px;
+            font-weight: 600;
+        }
+
+        .module-title p {
+            opacity: 0.9;
+            font-size: 0.85em;
+        }
+
+        .module-toggle {
+            font-size: 1.2em;
+            transition: transform 0.3s ease;
+        }
+
+        .module-toggle.expanded {
+            transform: rotate(180deg);
+        }
+
+        .module-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+
+        .module-content.expanded {
+            max-height: 10000px;
+        }
+
+        .step {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 5px solid #ddd;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .step.active {
+            border-left-color: #667eea;
+            background: white;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.2);
+            transform: translateX(5px);
+        }
+
+        .step.completed {
+            border-left-color: #28a745;
+            opacity: 0.7;
+        }
+
+        .step.locked {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            flex-shrink: 0;
+        }
+
+        .step.completed .step-number {
+            background: #28a745;
+        }
+
+        .step.locked .step-number {
+            background: #ccc;
+        }
+
+        .step-title {
+            flex: 1;
+            margin-left: 15px;
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #333;
+            min-width: 200px;
+        }
+
+        .step-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-locked {
+            background: #e2e3e5;
+            color: #6c757d;
+        }
+
+        .step-content {
+            margin-top: 15px;
+            color: #555;
+            line-height: 1.8;
+            font-size: 1.05em;
+        }
+
+        .step-content a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            word-break: break-word;
+        }
+
+        .step-content a:hover {
+            text-decoration: underline;
+        }
+
+        .step-content ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .step-content li {
+            margin-bottom: 8px;
+        }
+
+        .step-content code {
+            background: #f4f4f4;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #d63384;
+            font-size: 0.95em;
+        }
+
+        .step-content pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 10px 0;
+            border-left: 3px solid #667eea;
+        }
+
+        .step-content pre code {
+            background: none;
+            padding: 0;
+            color: #333;
+        }
+
+        .step-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-bar {
+            background: #e9ecef;
+            height: 6px;
+            border-radius: 10px;
+            margin: 15px 30px 10px 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #666;
+            margin-top: 5px;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .completion-message {
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border-radius: 15px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .completion-message.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .completion-message h2 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 1024px) {
+            .content-wrapper {
+                grid-template-columns: 1fr;
+            }
+
+            .video-container {
+                border-left: none;
+                border-top: 3px solid #667eea;
+                order: -1;
+                position: relative;
+            }
+
+            .step-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .step-title {
+                margin-left: 0;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 id="mainTitle">🎓 Guía de Clase Interactiva</h1>
+            <p id="mainSubtitle">Completa cada paso para continuar con el siguiente</p>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+        <div class="progress-text" id="progressText">Progreso: 0 de 0 pasos completados (0%)</div>
+
+        <div class="content-wrapper">
+            <div class="steps-container" id="stepsContainer">
+                <div class="completion-message" id="completionMessage">
+                    <h2>🎉 ¡Felicitaciones!</h2>
+                    <p>Has completado todos los pasos de la configuración</p>
+                </div>
+            </div>
+
+            <div class="video-container">
+                <div class="video-wrapper" id="videoWrapper">
+                    <div class="video-placeholder">
+                        <div style="text-align: center;">
+                            <div style="font-size: 3em; margin-bottom: 10px;">📹</div>
+                            <div>Configura tu video en la sección de configuración</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="video-info">
+                    <h3 id="videoTitle">Video Tutorial</h3>
+                    <p id="videoDescription">Sigue el video paso a paso mientras completas cada tarea</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // ⚙️ CONFIGURACIÓN - EDITA AQUÍ TUS MÓDULOS
+        // ============================================
+        
+        const config = {
+            // Título principal
+            title: "🎓 Acertemos - Clase 01 IA",
+            subtitle: "Completa cada paso para continuar con el siguiente",
+            
+            // Video (puede ser URL de YouTube, Vimeo o dejar vacío)
+            video: {
+                url: "", // Ejemplo: "https://www.youtube.com/embed/VIDEO_ID"
+                title: "Video Tutorial Completo",
+                description: "Sigue el video paso a paso mientras completas cada tarea"
+            },
+            
+            // Módulos y pasos
+            modules: [
+                {
+                    title: "Módulo 1: Configuración Inicial",
+                    description: "Crea tus cuentas en las plataformas necesarias",
+                    icon: "⚙️",
+                    steps: [
+                        {
+                            title: "Crea una cuenta en n8n",
+                            content: `
+                                <p>n8n es una herramienta de automatización de flujos de trabajo. Visita <a href="https://n8n.io" target="_blank">n8n.io</a> y crea tu cuenta gratuita.</p>
+                                <p style="margin-top: 10px;"><strong>Instrucciones:</strong></p>
+                                <ul>
+                                    <li>Ve a <a href="https://n8n.io" target="_blank">n8n.io</a></li>
+                                    <li>Haz clic en "Sign Up"</li>
+                                    <li>Completa el registro con tu email</li>
+                                    <li>Verifica tu correo electrónico</li>
+                                </ul>
+                            `
+                        },
+                        {
+                            title: "Crea una cuenta en Supabase",
+                            content: `
+                                <p>Supabase es una alternativa open source a Firebase. Crea tu cuenta en <a href="https://supabase.com" target="_blank">supabase.com</a></p>
+                                <p style="margin-top: 10px;"><strong>Instrucciones:</strong></p>
+                                <ul>
+                                    <li>Visita <a href="https://supabase.com" target="_blank">supabase.com</a></li>
+                                    <li>Haz clic en "Start your project"</li>
+                                    <li>Regístrate con GitHub o email</li>
+                                    <li>Crea tu primer proyecto</li>
+                                </ul>
+                            `
+                        },
+                        {
+                            title: "Accede a la carpeta de Drive",
+                            content: `
+                                <p>Accede a la carpeta compartida de Google Drive con todos los materiales del curso:</p>
+                                <p style="margin-top: 10px;">
+                                    <a href="https://drive.google.com/drive/folders/1jx_ZYn1etnfYmptoZre65YMJt2t52K_j?usp=sharing" target="_blank">
+                                        📁 Abrir carpeta de Drive
+                                    </a>
+                                </p>
+                                <p style="margin-top: 10px;"><strong>Instrucciones:</strong></p>
+                                <ul>
+                                    <li>Haz clic en el enlace de arriba</li>
+                                    <li>Agrega la carpeta a tu Drive (clic derecho > Agregar acceso directo)</li>
+                                    <li>Explora los recursos disponibles</li>
+                                </ul>
+                            `
+                        },
+                        {
+                            title: "Crea cuenta en Airtable",
+                            content: `
+                                <p>Airtable es una base de datos flexible y fácil de usar. Crea tu cuenta gratuita en <a href="https://airtable.com" target="_blank">airtable.com</a></p>
+                                <p style="margin-top: 10px;"><strong>Instrucciones:</strong></p>
+                                <ul>
+                                    <li>Visita <a href="https://airtable.com" target="_blank">airtable.com</a></li>
+                                    <li>Haz clic en "Sign up for free"</li>
+                                    <li>Completa el registro</li>
+                                    <li>Familiarízate con la interfaz</li>
+                                </ul>
+                            `
+                        },
+                        {
+                            title: "Copia el proyecto de Airtable",
+                            content: `
+                                <p>Copia la plantilla del proyecto de Airtable a tu cuenta:</p>
+                                <p style="margin-top: 10px;">
+                                    <a href="https://airtable.com/appsWpJjR8e09kyS3/shryF65wfSGmnYrsC" target="_blank">
+                                        📋 Copiar proyecto de Airtable
+                                    </a>
+                                </p>
+                                <p style="margin-top: 10px;"><strong>Instrucciones:</strong></p>
+                                <ul>
+                                    <li>Haz clic en el enlace de arriba</li>
+                                    <li>Selecciona "Copy base" o "Duplicar base"</li>
+                                    <li>El proyecto se copiará a tu workspace</li>
+                                    <li>Explora las tablas y campos creados</li>
+                                </ul>
+                            `
+                        }
+                    ]
+                },
+                {
+                    title: "Módulo 2: Configuración del Trigger de Google Drive",
+                    description: "Configura el nodo trigger para detectar cambios en Drive",
+                    icon: "🔔",
+                    steps: [
+                        {
+                            title: "Crea el trigger de Google Drive",
+                            content: `
+                                <p>En n8n, crea un nuevo trigger de Google Drive con la configuración específica.</p>
+                                <p style="margin-top: 10px;"><strong>Pasos:</strong></p>
+                                <ul>
+                                    <li>Añade un nodo de tipo <strong>Google Drive Trigger</strong></li>
+                                    <li>Selecciona <code>On changes on specific folder</code> como tipo de trigger</li>
+                                </ul>
+                            `
+                        },
+                        {
+                            title: "Agrega credenciales nuevas",
+                            content: `
+                                <p>Necesitas conectar n8n con tu cuenta de Google Drive.</p>
+                                <p style="margin-top: 10px;"><strong>Instrucciones:</strong></p>
+                                <ul>
+                                    <li>Haz clic en <strong>"Add new credentials"</strong></li>
+                                    <li>Prepárate para configurar OAuth con Google Cloud</li>
+                                </ul>
+                            `
+                        },
+                        {
+                            title: "Configura las credenciales en Google Cloud",
+                            content: `
+                                <p>Configura OAuth 2.0 en Google Cloud Console siguiendo estos pasos detallados:</p>
+                                <p style="margin-top: 10px;"><strong>Paso 1: Accede a Google Cloud Console</strong></p>
+                                <ul>
+                                    <li>Ve a: <a href="https://console.cloud.google.com" target="_blank">console.cloud.google.com</a></li>
+                                </ul>
+                                <p style="margin-top: 15px;"><strong>Paso 2: Navega a las credenciales</strong></p>
+                                <ul>
+                                    <li>Haz clic en <strong>"APIs & Services"</strong></li>
+                                    <li>Luego en <strong>"Credentials"</strong></li>
+                                </ul>
+                                <p style="margin-top: 15px;"><strong>Paso 3: Crea las credenciales</strong></p>
+                                <ul>
+                                    <li>Haz clic en <strong>"Create credentials"</strong></li>
+                                    <li>Elige <strong>"OAuth client ID"</strong></li>
+                                </ul>
+                                <p style="margin-top: 15px;"><strong>Paso 4: Configura la aplicación</strong></p>
+                                <ul>
+                                    <li>En <strong>Application type</strong> selecciona <strong>"Web application"</strong></li>
+                                    <li>Ponle un nombre a la aplicación (ej: "n8n Automation")</li>
+                                </ul>
+                                <p style="margin-top: 15px;"><strong>Paso 5: Agrega el Redirect URI</strong></p>
+                                <ul>
+                                    <li>En <strong>"Authorized Redirect URIs"</strong> agrega la URL que aparece en n8n</li>
+                                    <li>Esta URL generalmente tiene el formato: <code>https://tu-instancia.n8n.cloud/rest/oauth2-credential/callback</code></li>
+                                </ul>
+                            `
+                        },
+                        {
+                            title: "Copia las credenciales a n8n",
+                            content: `
+                                <p>Finaliza la configuración copiando las credenciales de Google Cloud a n8n.</p>
+                                <p style="margin-top: 10px;"><strong>Pasos:</strong></p>
+                                <ul>
+                                    <li>Haz clic en <strong>"Create"</strong> en Google Cloud Console</li>
+                                    <li>Copia el <strong>Client ID</strong> y pégalo en n8n</li>
+                                    <li>Copia el <strong>Client Secret</strong> y pégalo en n8n</li>
+                                    <li>Haz clic en <strong>"Sign in with Google"</strong> en n8n</li>
+                                    <li>Autoriza el acceso a tu cuenta de Google</li>
+                                </ul>
+                            `
+                        },
+                        {
+                            title: "Configura la carpeta y el evento",
+                            content: `
+                                <p>Finalmente, configura qué carpeta monitorear y qué tipo de cambios detectar.</p>
+                                <p style="margin-top: 10px;"><strong>Configuración:</strong></p>
+                                <ul>
+                                    <li>Pega la URL de la carpeta de Drive en la opción <strong>"Folder"</strong></li>
+                                    <li>En <strong>"Watch for"</strong> elige <strong>"When File updated"</strong></li>
+                                </ul>
+                                <p style="margin-top: 10px;"><strong>Nota:</strong> El trigger ahora detectará cuando se actualice cualquier archivo en esa carpeta.</p>
+                            `
+                        }
+                    ]
+                },
+                {
+                    title: "Módulo 3: Nodo de Descarga",
+                    description: "Configura el nodo para descargar archivos de Drive",
+                    icon: "⬇️",
+                    steps: [
+                        {
+                            title: "Crea el nodo de Google Drive Download",
+                            content: `
+                                <p>Ahora vamos a añadir un nodo que descargue los archivos cuando se detecte un cambio.</p>
+                                <p style="margin-top: 10px;"><strong>Instrucciones:</strong></p>
+                                <ul>
+                                    <li>Crea un nuevo nodo de <strong>Google Drive</strong></li>
+                                    <li>Selecciona la operación <strong>"Download"</strong></li>
+                                </ul>
+                            `
+                        },
+                        {
+                            title: "Configura el ID del archivo",
+                            content: `
+                                <p>Necesitas pasar el ID del archivo que fue actualizado desde el trigger anterior.</p>
+                                <p style="margin-top: 10px;"><strong>Configuración:</strong></p>
+                                <ul>
+                                    <li>En el campo <strong>"File"</strong> selecciona <strong>"By ID"</strong></li>
+                                    <li>Arrastra la variable de <strong>ID</strong> de los resultados del nodo anterior</li>
+                                </ul>
+                                <p style="margin-top: 15px;"><strong>Si no ves las variables:</strong></p>
+                                <ul>
+                                    <li>Dale clic a <strong>"Test workflow"</strong> para ejecutar el trigger</li>
+                                    <li>O escribe manualmente esta variable:</li>
+                                </ul>
+                                <pre><code>{{ $json.id }}</code></pre>
+                                <p style="margin-top: 10px;">Esta variable tomará automáticamente el ID del archivo detectado por el trigger.</p>
+                            `
+                        }
+                    ]
+                },
+                {
+                    title: "Módulo 4: Supabase Vector Store",
+                    description: "Configura el almacenamiento de vectores en Supabase",
+                    icon: "🗄️",
+                    steps: [
+                        {
+                            title: "Crea el nodo de Supabase Vector Store",
+                            content: `
+                                <p>Vamos a configurar el almacenamiento de vectores para los documentos procesados.</p>
+                                <p style="margin-top: 10px;"><strong>Pasos:</strong></p>
+                                <ul>
+                                    <li>Añade un nodo de <strong>"Supabase Vector Store"</strong></li>
+                                    <li>Este nodo almacenará los embeddings de tus documentos</li>
+                                </ul>
+                            `
+                        },
+                        {
+                            title: "Configura las credenciales de Supabase",
+                            content: `
+                                <p>Necesitas crear un proyecto en Supabase y obtener las credenciales de conexión.</p>
+                                <p style="margin-top: 10px;"><strong>Pasos para obtener credenciales:</strong></p>
+                                <ul>
+                                    <li>Entra a <a href="https://supabase.com/" target="_blank">supabase.com</a></li>
+                                    <li>Haz clic en <strong>"New project"</strong></li>
+                                    <li>Ponle un <strong>nombre</strong> a tu proyecto</li>
+                                    <li>Crea una <strong>contraseña</strong> segura (guárdala, la necesitarás)</li>
+                                    <li>Espera a que el proyecto se cree (puede tardar unos minutos)</li>
+                                </ul>
+                                <p style="margin-top: 15px;"><strong>Obtener las credenciales:</strong></p>
+                                <ul>
+                                    <li>Ve a <strong>Settings > API</strong> en el menú lateral</li>
+                                    <li>Copia la <strong>URL</strong> del proyecto</li>
+                                    <li>Copia el <strong>anon/public key</strong> (Service role key)</li>
+                                    <li>Pega ambos valores en las credenciales de n8n</li>
+                                </ul>
+                            `
+                        },
+                        {
+                            title: "Configura el Operation Mode",
+                            content: `
+                                <p>Asegúrate de configurar el modo de operación correcto para insertar documentos.</p>
+                                <p style="margin-top: 10px;"><strong>Configuración:</strong></p>
+                                <ul>
+                                    <li>En <strong>"Operation mode"</strong> asegúrate de tener seleccionado <strong>"Insert Documents"</strong></li>
+                                    <li>Este modo permitirá almacenar los vectores generados en Supabase</li>
+                                </ul>
+                            `
+                        },
+                        {
+                            title: "Crea las tablas en Supabase",
+                            content: `
+                                <p>Ahora necesitas crear la estructura de base de datos en Supabase usando SQL.</p>
+                                <p style="margin-top: 10px;"><strong>Instrucciones:</strong></p>
+                                <ul>
+                                    <li>Vuelve a Supabase y ve al <strong>"SQL Editor"</strong> en el menú lateral</li>
+                                    <li>Haz clic en <strong>"New query"</strong></li>
+                                    <li>Copia el siguiente query SQL completo:</li>
+                                </ul>
+                                <pre><code>-- Enable the pgvector extension to work with embedding vectors
+create extension vector;
+
+-- Create a table to store your documents
+create table documents (
+  id bigserial primary key,
+  content text, -- corresponds to Document.pageContent
+  metadata jsonb, -- corresponds to Document.metadata
+  embedding vector(768) -- 1536 works for OpenAI embeddings, change if needed
+);
+
+-- Create a function to search for documents
+create function match_documents (
+  query_embedding vector(768),
+  match_count int default null,
+  filter jsonb DEFAULT '{}'
+) returns table (
+  id bigint,
+  content text,
+  metadata jsonb,
+  similarity float
+)
+language plpgsql as $$
+#variable_conflict use_column
+begin
+  return query
+  select
+    id,
+    content,
+    metadata,
+    1 - (documents.embedding <=> query_embedding) as similarity
+  from documents
+  where metadata @> filter
+  order by documents.embedding <=> query_embedding
+  limit match_count;
+end;
+$$;</code></pre>
+                                <ul style="margin-top: 10px;">
+                                    <li>Pega el query en el editor</li>
+                                    <li>Haz clic en <strong>"Run"</strong> o presiona <strong>Ctrl + Enter</strong></li>
+                                    <li>Verifica que se ejecutó correctamente (aparecerá un mensaje de éxito)</li>
+                                </ul>
+                            `
+                        },
+                        {
+                            title: "Configura el Table Name en n8n",
+                            content: `
+                                <p>Finalmente, conecta el nodo de n8n con la tabla que acabas de crear.</p>
+                                <p style="margin-top: 10px;"><strong>Configuración:</strong></p>
+                                <ul>
+                                    <li>En <strong>"Table name"</strong> selecciona <strong>"From list"</strong></li>
+                                    <li>Elige <strong>"documents"</strong> de la lista desplegable</li>
+                                </ul>
+                                <p style="margin-top: 15px;"><strong>Configuración adicional:</strong></p>
+                                <ul>
+                                    <li>Agrega una opción de <strong>"Query name"</strong></li>
+                                    <li>Déjalo como viene por defecto (<code>match_documents</code>)</li>
+                                </ul>
+                                <p style="margin-top: 10px;"><strong>✅ Listo:</strong> Tu Vector Store está configurado y listo para almacenar embeddings.</p>
+                            `
+                        }
+                    ]
+                },
+                {
+                    title: "Módulo 5: Configuración de MCP Server y Airtable",
+                    description: "Configura el servidor MCP y las herramientas de Airtable",
+                    icon: "🔧",
+                    steps: [
+                        {
+                            title: "Crea el trigger de MCP Server",
+                            content: `
+                                <p>El MCP Server Trigger permite que tu flujo responda a solicitudes externas.</p>
+                                <p style="margin-top: 10px;"><strong>Instrucciones:</strong></p>
+                                <ul>
+                                    <li>Crea un nuevo nodo trigger</li>
+                                    <li>Busca y selecciona <strong>"MCP Server Trigger"</strong></li>
+                                </ul>
+                            `
+                        },
+                        {
+                            title: "Agrega el tool de Airtable",
+                            content: `
+                                <p>Vamos a conectar Airtable como herramienta para gestionar datos.</p>
+                                <p style="margin-top: 10px;"><strong>Pasos:</strong></p>
+                                <ul>
+                                    <li>Añade un nuevo nodo de tipo <strong>Tool</strong></li>
+                                    <li>Selecciona <strong>Airtable</strong> como el tipo de tool</li>
+                                </ul>
+                            `
+                        },
+                        {
+                            title: "Configura las credenciales de Airtable",
+                            content: `
+                                <p>Necesitas generar un token de API de Airtable para conectarlo con n8n.</p>
+                                <p style="margin-top: 10px;"><strong>Instrucciones:</strong></p>
+                                <ul>
+                                    <li>Ve a <a href="https://airtable.com/create/tokens" target="_blank">airtable.com/create/tokens</a></li>
+                                    <li>Haz clic en <strong>"Create new token"</strong></li>
+                                    <li>Dale un nombre descriptivo (ej: "n8n Integration")</li>
+                                    <li>Selecciona los scopes necesarios (data.records:read, data.records:write)</li>
+                                    <li>Selecciona tu base de datos</li>
+                                    <li>Copia el token generado</li>
+                                    <li>Pégalo en n8n en las credenciales de Airtable</li>
+                                </ul>
+                            `
+                        },
+                        {
+                            title: "Tool 1: Buscar Usuarios",
+                            content: `
+                                <p>Configura el primer tool para buscar registros en la tabla de Usuarios.</p>
+                                <p style="margin-top: 10px;"><strong>Configuración:</strong></p>
+                                <ul>
+                                    <li><strong>Operation:</strong> Search record</li>
+                                    <li><strong>Tabla:</strong> Usuarios</li>
+                                </ul>
+                                <p style="margin-top: 10px;">Este tool permitirá buscar usuarios específicos en la base de datos.</p>
+                            `
+                        },
+                        {
+                            title: "Tool 2: Buscar Tickets",
+                            content: `
+                                <p>Configura el segundo tool para buscar tickets.</p>
+                                <p style="margin-top: 10px;"><strong>Configuración:</strong></p>
+                                <ul>
+                                    <li><strong>Operation:</strong> Search record</li>
+                                    <li><strong>Tabla:</strong> Tickets</li>
+                                </ul>
+                            `
+                        },
+                        {
+                            title: "Tool 3: Actualizar o Crear Ticket",
+                            content: `
+                                <p>Configura el tool para actualizar tickets existentes o crear nuevos.</p>
+                                <p style="margin-top: 10px;"><strong>Configuración:</strong></p>
+                                <ul>
+                                    <li><strong>Operation:</strong> Update or insert</li>
+                                    <li><strong>Tabla:</strong> Tickets</li>
+                                </ul>
+                                <p style="margin-top: 10px;">Este tool es útil para operaciones upsert (actualizar si existe, crear si no existe).</p>
+                            `
+                        },
+                        {
+                            title: "Tool 4: Traer Tickets",
+                            content: `
+                                <p>Configura el tool para obtener registros específicos de tickets.</p>
+                                <p style="margin-top: 10px;"><strong>Configuración:</strong></p>
+                                <ul>
+                                    <li><strong>Operation:</strong> Get record</li>
+                                    <li><strong>Tabla:</strong> Tickets</li>
+                                </ul>
+                            `
+                        },
+                        {
+                            title: "Tool 5: Traer Usuarios",
+                            content: `
+                                <p>Configura el quinto y último tool para obtener registros de usuarios.</p>
+                                <p style="margin-top: 10px;"><strong>Configuración:</strong></p>
+                                <ul>
+                                    <li><strong>Operation:</strong> Get record</li>
+                                    <li><strong>Tabla:</strong> Usuarios</li>
+                                </ul>
+                                <p style="margin-top: 15px;"><strong>✅ Resumen de los 5 tools:</strong></p>
+                                <ul>
+                                    <li>🔍 Buscar Usuarios (Search)</li>
+                                    <li>🔍 Buscar Tickets (Search)</li>
+                                    <li>✏️ Actualizar/Crear Ticket (Update or insert)</li>
+                                    <li>📥 Traer Tickets (Get)</li>
+                                    <li>📥 Traer Usuarios (Get)</li>
+                                </ul>
+                            `
+                        }
+                    ]
+                },
+                {
+                    title: "Módulo 6: Configuración del AI Agent",
+                    description: "Configura el agente de IA para procesar mensajes",
+                    icon: "🤖",
+                    steps: [
+                        {
+                            title: "Crea el trigger de chat",
+                            content: `
+                                <p>Este trigger activará el flujo cuando se reciba un mensaje de chat.</p>
+                                <p style="margin-top: 10px;"><strong>Instrucciones:</strong></p>
+                                <ul>
+                                    <li>Busca un trigger llamado <strong>"When chat message received"</strong></li>
+                                    <li>Añádelo a tu workflow</li>
+                                </ul>
+                            `
+                        },
+                        {
+                            title: "Agrega el nodo AI Agent",
+                            content: `
+                                <p>El AI Agent es el cerebro que procesará los mensajes y tomará decisiones.</p>
+                                <p style="margin-top: 10px;"><strong>Pasos:</strong></p>
+                                <ul>
+                                    <li>Añade un nodo de <strong>"AI Agent"</strong></li>
+                                    <li>Conéctalo al trigger de chat</li>
+                                </ul>
+                            `
+                        },
+                        {
+                            title: "Configura el System Prompt",
+                            content: `
+                                <p>El system prompt define el comportamiento y personalidad de tu AI Agent. Copia y pega el siguiente prompt en el campo <strong>"System Prompt"</strong>.</p>
+                                <p style="margin-top: 15px;"><strong>📋 System Prompt completo:</strong></p>
+                                <pre><code>Agente de Soporte – Acertemos
+                                    Eres un agente especializado de Acertemos que resuelve las dudas y preguntas con la informacion oficial 
+
+objetivo:
+Tu mision principal es resolver dudas y preguntas con la infomracion dipsonible en la herrmaienta informacion_acertemos.
+
+contexto:
+trabajas en una empresa como agente soporte y simepre verificas la herramienta informacion_acertemos
+
+output:
+tu salida siempre sera amigable y cordial dando solo infomracion oficial
+
+
+Restricciones:
+No dar infomracion que no esta disponible, 
+
+---------------------------------------------------------------------------------------------------------
+Eres un agente de soporte de acertemos. Tu trabajo es atender solicitudes, resolver dudas usando información oficial y crear un ticket por cada interacción.
+
+⸻
+Flujo de trabajo (obligatorio en este orden):
+
+1. Identificar al usuario en Airtable
+   • Pide al usuario su nombre, correo o teléfono.
+   • Usa la herramienta "Buscar usuarios" para encontrar su registro.
+   • Luego usa "Traer usuarios" para obtener el ID numérico del usuario (necesario para el ticket).
+
+2. Entender el problema y resolverlo
+   • Pregunta lo necesario para entender el problema.
+   • Identifica el producto relacionado: "Customer Engagement", "ZapSign" o "Digital Identity".
+   • Usa solo la herramienta "Información de Truora" para dar la respuesta.
+   • Si no puedes resolverlo o el usuario pide ayuda humana, usa la herramienta "Aprobar" para escalar el caso. 
+   • Solamente usalo en los casos que no puedas responder con la informacion de supabase.
+
+3. Crear SIEMPRE un ticket en Airtable
+   • Crea el ticket en cuanto entiendas la solicitud. No preguntes si debes hacerlo.
+   • Usa la herramienta "Actualizar o crear ticket" y completa los siguientes campos:
+     • ID: ID del usuario (de Airtable)
+     • Resumen: breve descripción del problema o solicitud
+     • Tipo:
+       • Nivel 1: resuelto fácilmente con el vector store
+       • Nivel 2: requiere pasos extra pero sin humanos
+       • Nivel 3: necesita intervención humana
+     • Producto: "Customer Engagement", "ZapSign" o "Digital Identity"
+     • Status:
+       • "Resuelto por agente": si confirmas que se resolvió
+       • "En proceso": si falta algo por gestionar
+       • "Con asesor": si se escaló o el usuario lo pidió
+   • Antes de marcar como "Resuelto por agente", pregúntale al usuario si su solicitud fue resuelta.
+
+4. Si aplicas "Nivel 3", aprueba y notifica
+   • Usa "Traer tickets" para obtener el ticket creado.
+   • Usa "Aprobar" para enviar el caso al equipo humano con todos los detalles.
+
+⸻
+Herramientas disponibles:
+
+1. Información de Truora (vector store en Supabase)
+   • Solo puedes usar esta fuente para responder.
+
+2. Airtable (MCP)
+   • Buscar usuarios
+   • Traer usuarios
+   • Buscar tickets
+   • Traer tickets
+   • Actualizar o crear ticket
+   • Aprobar
+
+3. Aprobar
+   • Para escalar casos a humanos o validar acciones críticas.
+
+⸻
+Reglas clave:
+• Siempre crea un ticket.
+• Nunca inventes respuestas. Usa solo el vector store.
+• Clasifica bien el tipo y status del ticket.
+• Solo pregunta si el usuario quedó satisfecho, para marcar como resuelto.
+• Si no puedes resolver, aprueba y escala.
+
+⸻
+La fecha de hoy es: {{ DateTime.local().toFormat('cccc d LLLL yyyy') }}</code></pre>
+                                <p style="margin-top: 15px;"><strong>✅ Puntos importantes del prompt:</strong></p>
+                                <ul>
+                                    <li><strong>Flujo obligatorio:</strong> Identificar usuario → Resolver → Crear ticket → Escalar si es necesario</li>
+                                    <li><strong>Productos:</strong> Customer Engagement, ZapSign, Digital Identity</li>
+                                    <li><strong>Niveles de tickets:</strong> 1 (fácil), 2 (medio), 3 (necesita humanos)</li>
+                                    <li><strong>Status:</strong> Resuelto por agente, En proceso, Con asesor</li>
+                                    <li><strong>Variable de fecha:</strong> Se actualiza automáticamente con la fecha actual</li>
+                                </ul>
+                            `
+                        }
+                    ]
+                }
+            ]
+        };
+
+        // ============================================
+        // 🚀 CÓDIGO DE LA APLICACIÓN (NO EDITAR)
+        // ============================================
+        
+        let completedSteps = new Set();
+        let totalSteps = 0;
+        let stepCounter = 0;
+
+        function initializeApp() {
+            // Configurar título
+            document.getElementById('mainTitle').textContent = config.title;
+            document.getElementById('mainSubtitle').textContent = config.subtitle;
+            
+            // Configurar video
+            if (config.video.url) {
+                document.getElementById('videoWrapper').innerHTML = `
+                    <iframe src="${config.video.url}" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen>
+                    </iframe>
+                `;
+            }
+            document.getElementById('videoTitle').textContent = config.video.title;
+            document.getElementById('videoDescription').textContent = config.video.description;
+            
+            // Contar total de pasos
+            config.modules.forEach(module => {
+                totalSteps += module.steps.length;
+            });
+            
+            // Generar módulos y pasos
+            const container = document.getElementById('stepsContainer');
+            const completionMessage = document.getElementById('completionMessage');
+            
+            config.modules.forEach((module, moduleIndex) => {
+                const moduleDiv = document.createElement('div');
+                moduleDiv.className = 'module';
+                
+                const isFirstModule = false; // Todos los módulos inician colapsados
+                
+                const moduleHeader = `
+                    <div class="module-header" onclick="toggleModule(${moduleIndex})">
+                        <div class="module-icon">${module.icon}</div>
+                        <div class="module-title">
+                            <h2>${module.title}</h2>
+                            <p>${module.description}</p>
+                        </div>
+                        <div class="module-toggle ${isFirstModule ? 'expanded' : ''}" id="toggle${moduleIndex}">▼</div>
+                    </div>
+                    <div class="module-content ${isFirstModule ? 'expanded' : ''}" id="moduleContent${moduleIndex}">
+                `;
+                moduleDiv.innerHTML = moduleHeader;
+                
+                const moduleContent = document.getElementById('moduleContent' + moduleIndex) || moduleDiv.querySelector('.module-content');
+                
+                module.steps.forEach((step, stepIndex) => {
+                    stepCounter++;
+                    const globalStepNumber = stepCounter;
+                    const isFirstStep = globalStepNumber === 1;
+                    
+                    const stepDiv = document.createElement('div');
+                    stepDiv.className = `step ${isFirstStep ? 'active' : 'locked'}`;
+                    stepDiv.id = `step${globalStepNumber}`;
+                    
+                    stepDiv.innerHTML = `
+                        <div class="step-header">
+                            <div class="step-number">${globalStepNumber}</div>
+                            <div class="step-title">${step.title}</div>
+                            <span class="step-status ${isFirstStep ? 'status-pending' : 'status-locked'}">
+                                ${isFirstStep ? 'En progreso' : '🔒 Bloqueado'}
+                            </span>
+                        </div>
+                        <div class="step-content">
+                            ${step.content}
+                        </div>
+                        <div class="step-actions">
+                            <button class="btn btn-primary" 
+                                    onclick="completeStep(${globalStepNumber})" 
+                                    ${!isFirstStep ? 'disabled' : ''}>
+                                ✓ Marcar como completado
+                            </button>
+                        </div>
+                    `;
+                    
+                    moduleDiv.querySelector('.module-content').appendChild(stepDiv);
+                });
+                
+                moduleDiv.innerHTML += '</div>';
+                
+                container.insertBefore(moduleDiv, completionMessage);
+            });
+            
+            updateProgress();
+        }
+
+        function toggleModule(moduleIndex) {
+            const content = document.getElementById(`moduleContent${moduleIndex}`);
+            const toggle = document.getElementById(`toggle${moduleIndex}`);
+            
+            if (content && toggle) {
+                content.classList.toggle('expanded');
+                toggle.classList.toggle('expanded');
+            }
+        }
+
+        function completeStep(stepNumber) {
+            completedSteps.add(stepNumber);
+            
+            const currentStep = document.getElementById(`step${stepNumber}`);
+            currentStep.classList.remove('active');
+            currentStep.classList.add('completed');
+            
+            const statusElement = currentStep.querySelector('.step-status');
+            statusElement.textContent = '✓ Completado';
+            statusElement.className = 'step-status status-completed';
+            
+            const numberElement = currentStep.querySelector('.step-number');
+            numberElement.textContent = '✓';
+            
+            const button = currentStep.querySelector('.btn-primary');
+            button.disabled = true;
+            button.textContent = '✓ Completado';
+            
+            if (stepNumber < totalSteps) {
+                const nextStep = document.getElementById(`step${stepNumber + 1}`);
+                nextStep.classList.remove('locked');
+                nextStep.classList.add('active');
+                
+                const nextStatus = nextStep.querySelector('.step-status');
+                nextStatus.textContent = 'En progreso';
+                nextStatus.className = 'step-status status-pending';
+                
+                const nextButton = nextStep.querySelector('.btn-primary');
+                nextButton.disabled = false;
+                
+                nextStep.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            
+            updateProgress();
+            
+            if (completedSteps.size === totalSteps) {
+                showCompletionMessage();
+            }
+        }
+
+        function updateProgress() {
+            const percentage = (completedSteps.size / totalSteps) * 100;
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('progressText').textContent = 
+                `Progreso: ${completedSteps.size} de ${totalSteps} pasos completados (${Math.round(percentage)}%)`;
+        }
+
+        function showCompletionMessage() {
+            setTimeout(() => {
+                document.getElementById('completionMessage').classList.add('show');
+                document.getElementById('completionMessage').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 500);
+        }
+
+        // Inicializar la aplicación
+        initializeApp();
+    </script>
+</body>
+</html>
